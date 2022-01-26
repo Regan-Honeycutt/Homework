@@ -1,0 +1,139 @@
+---
+title: "Homework 2"
+author: "Regan Honeycutt"
+date: "1/18/2022"
+output: html_document
+---
+
+R intermediate
+Dan McGlinn
+January 15, 2016
+Premature optimization is the root of all evil -- Donald Knuth
+
+The humble for loop is often considered distasteful by seasoned programmers because it is inefficient; however, the for loop is one of the most useful and generalizable programming structures in R. If you can learn how to construct and understand for loops then you can code almost any iterative task. Once your loop works you can always work to optimize your code and increase its efficiency.
+
+Before attempting these exercises you should review the lesson R intermediate in which loops were covered.
+
+Examine the following for loop, and then complete the exercises
+
+data(iris)
+head(iris)
+##   Sepal.Length Sepal.Width Petal.Length Petal.Width Species
+## 1          5.1         3.5          1.4         0.2  setosa
+## 2          4.9         3.0          1.4         0.2  setosa
+## 3          4.7         3.2          1.3         0.2  setosa
+## 4          4.6         3.1          1.5         0.2  setosa
+## 5          5.0         3.6          1.4         0.2  setosa
+## 6          5.4         3.9          1.7         0.4  setosa
+
+    #' identifying sp_ids as the unique species
+
+sp_ids = unique(iris$Species)
+
+    #' Creating matrix of blank, number of unique species, and columns in 
+        data
+
+output = matrix(0, nrow=length(sp_ids), ncol=ncol(iris)-1)
+
+    #' When naming the rows, put sp_ids (which is unique species)
+    #' When naming columns, put the number of columns
+  
+rownames(output) = sp_ids
+colnames(output) = names(iris[ , -ncol(iris)])
+
+    #' Creating for loop where i is number of unique species 
+    #' Defining iris_sp as subset of data of unique species (1:3) 
+    #' For loop where j is 1 through number of columns of subset iris_sp
+    #' assigning x and y as 0 if the number of rows in iris_sp is greater 0
+    #' For loop where k is 1-# of rows in iris_sp w/ function of x value         equaling x + a data point and y equaling y + 1
+    #' the output is the average
+
+for(i in seq_along(sp_ids)) {
+    iris_sp = subset(iris, subset=Species == sp_ids[i], select=-Species)
+    for(j in 1:(ncol(iris_sp))) {
+        x = 0
+        y = 0
+        if (nrow(iris_sp) > 0) {
+            for(k in 1:nrow(iris_sp)) {
+                x = x + iris_sp[k, j]
+                y = y + 1
+            }
+            output[i, j] = x / y 
+        }
+    }
+}
+
+
+output
+##            Sepal.Length Sepal.Width Petal.Length Petal.Width
+## setosa            5.006       3.428        1.462       0.246
+## versicolor        5.936       2.770        4.260       1.326
+## virginica         6.588       2.974        5.552       2.026
+
+Excercises
+Iris loops
+Describe the values stored in the object output. In other words what did the loops create?
+
+    #' They're the average
+
+Describe using pseudo-code how output was calculated, for example,
+
+Loop from 1 to length of species identities
+   Take a subset of iris data 
+   Loop from 1 to number of columns of the iris data
+      If ... occurs then do ...  
+      
+       #' Loop from 1 to number of species identities
+        Subset of the data Iris with unique species
+        Loop defining x and y as 0 if the number of rows in subset is 
+        greater than 0
+        Loop from 1-number of rows in subset add all x values and add +1
+        divide x by y
+      
+The variables in the loop were named so as to be vague. How can the objects output, x, and y be renamed such that it is clearer what is occurring in the loop.
+
+      #' x could be named value_sum and why could be named value_n.
+      Output could be named column_mean
+      
+It is possible to accomplish the same task using fewer lines of code? Please suggest one other way to calculate output that decreases the number of loops by 1.
+
+for(i in seq_along(sp_ids)) {
+    iris_sp = subset(iris, subset=Species == sp_ids[i], select=-Species)
+    columns <- names(iris_sp)
+    for (j in names(iris_sp)) {
+      mean(iris_sp$columns[j])
+     }
+    }
+
+Sum of a sequence
+You have a vector x with the numbers 1:10. Write a for loop that will produce a vector y that contains the sum of x up to that index of x. So for example the elements of x are 1, 2, 3, and so on and the elements of y would be 1, 3, 6, and so on.
+
+
+
+y=0
+x=1:10
+for(i in 1:10) {
+  y[i] = sum(x[1:i])
+  if (y[i] <= 10) {
+    print(y)
+  }
+}
+
+
+Modify your for loop so that if the sum is greater than 10 the value of y is set to NA
+
+Place your for loop into a function that accepts as its argument any vector of arbitrary length and it will return y.
+
+
+y=0
+x=1:10
+for(i in 1:10) {
+  y[i] = sum(x[1:i])
+  if (y[i] <= 10) {
+  print(y[i])
+}   else if (y[i] > 10) {
+    print(NA)
+   }
+}
+
+
