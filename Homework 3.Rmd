@@ -166,7 +166,7 @@ abies_poi = glm(cover ~ tci + elev + streamdist + disturb + beers, data = abies,
 
 ```
 
-For assessing the degree of variation explained you can use a 
+ For assessing the degree of variation explained you can use a 
 pseudo-R-squared statistic (note this is just one of many possible)
 
 ```r
