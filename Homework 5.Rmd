@@ -46,13 +46,7 @@ comm_mantel <- mantel(geod, commd)
 comm_mantel
 ```
 
-1) Examine if there is evidence of spatial dependence in a rare and a common species in the BCI tree dataset
 
-
-    There is evidence of spatial dependence in a common species (col #58) but not in the rare species (col #65) in both the graphical model and the mantel test.
-
-
-2) Build two generalized linear models to predict the abundance of the species Drypetes standleyi using the abundance of other tree species in the study site. Specifically examine the following species as predictor variables:
 
 ``` {R}
 sp_ids = c("Cordia.lasiocalyx", "Hirtella.triandra",
