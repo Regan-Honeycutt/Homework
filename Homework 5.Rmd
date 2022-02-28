@@ -1,0 +1,136 @@
+---
+title: "Homework 5"
+author: "Regan Honeycutt"
+date: "2/22/2022"
+output: html_document
+---
+
+```{R}
+library(vegan)
+data(BCI)
+## UTM Coordinates (in metres)
+BCI_xy = data.frame(x = rep(seq(625754, 626654, by=100), each=5), 
+                    y = rep(seq(1011569,  1011969, by=100), len=50))
+```
+
+
+```{R}
+sr <- rowSums(BCI > 0)
+hist(sr)
+
+abu <- colSums(BCI)
+quantile(abu)
+quantile(log10(abu))
+
+plot(density(abu))
+plot(density(log10(abu)))
+
+which(abu > 25 & abu < 27)
+which(abu > 10^1.93 & abu < 10^1.95)
+rare_sp <- BCI[ , 65]
+comm_sp <- BCI[ , 58]
+plot(BCI_xy, cex = rare_sp / max(rare_sp))
+plot(BCI_xy, cex = comm_sp / max(comm_sp))
+
+geod <- dist(BCI_xy)
+rared <- dist(rare_sp)
+commd <- dist(comm_sp)
+plot(geod, rared, main = "Rare Species")
+lines(lowess(geod, rared), lwd = 2, col = "red")
+plot(geod, commd, main = "Common Species")
+lines(lowess(geod, commd), lwd = 2, col = "red")
+
+rare_mantel <- mantel(geod, rared)
+rare_mantel
+comm_mantel <- mantel(geod, commd)
+comm_mantel
+```
+
+1) Examine if there is evidence of spatial dependence in a rare and a common species in the BCI tree dataset
+
+
+    There is evidence of spatial dependence in a common species (col #58) but not in the rare species (col #65) in both the graphical model and the mantel test.
+
+
+2) Build two generalized linear models to predict the abundance of the species Drypetes standleyi using the abundance of other tree species in the study site. Specifically examine the following species as predictor variables:
+
+``` {R}
+sp_ids = c("Cordia.lasiocalyx", "Hirtella.triandra",
+           "Picramnia.latifolia", "Quassia.amara",
+           "Tabernaemontana.arborea", "Trattinnickia.aspera", 
+           "Xylopia.macrantha")
+
+sp_dry <- BCI$Drypetes.standleyi
+sp_a <- BCI$Cordia.lasiocalyx
+sp_b <- BCI$Hirtella.triandra
+sp_c <- BCI$Picramnia.latifolia
+sp_d <- BCI$Quassia.amara
+sp_e <- BCI$Tabernaemontana.arborea
+sp_f <- BCI$Trattinnickia.aspera
+sp_g <- BCI$Xylopia.macrantha
+all_sp <- sp_a + sp_b + sp_c + sp_d + sp_e + sp_f + sp_g
+
+```
+Note renaming the species ids to something a little easier to work with like “sp_a”, “sp_b” will make model construction a little less cumbersome
+
+Model 1: only include a single species as a predictor variable
+
+``` {R}
+
+library(nlme)
+abu_lm = gls(sp_dry ~ sp_a, data = BCI_xy)
+
+plot(Variogram(abu_lm, form = ~ x + y))
+
+
+
+```
+
+
+Model 2: include all of the species as predictor variables
+
+```{R}
+sp_dry_lm = gls(sp_dry ~ all_sp, data = BCI_xy)
+
+plot(Variogram(sp_dry_lm, form = ~ x + y))
+
+
+
+```
+
+With both models examine the spatial dependence of the residuals using the function Variogram. Model the spatial dependence in the residuals using one of the error structures available.
+
+``` {R}
+max_abu <- max(abu) / 2
+res = residuals(sp_dry_lm)
+plot(dist(BCI_xy[, c('x', 'y')]), dist(res))
+lines(lowess(dist(BCI_xy[, c('x', 'y')]), dist(res)), col='red', lwd=2)
+abline(v = max_abu, col='red', lwd=3, lty=2)
+
+sp_dry_exp = update(sp_dry_lm, corr=corExp(form=~x + y))
+plot(Variogram(sp_dry_exp, resType='normalized', maxDist = max_abu))
+
+sp_dry_q = update(sp_dry_lm, corr=corRatio(form=~x + y, nugget=T))
+plot(Variogram(sp_dry_lm, maxDist = max_abu))
+
+
+anova(sp_dry_lm, sp_dry_exp, sp_dry_q, test=F)
+
+summary(sp_dry_exp)
+summary(sp_dry_q)
+
+```
+
+Did including the spatial error term have a large impact on the coefficients of the model?
+
+      Including the spatial error term had a great impact on the coefficients of the model. The p-value for the quadratic error model is much larger than that of the exponential model.
+    
+
+
+Did including the spatial error terms significantly improve model fit (use function anova to carry out model comparison)?
+
+    The spatial error did not create a better fitting model for the data. The exponential model appears to be the best fit. Including a nugget showed no significant impact and resulted in an error, so it was not included.
+
+Explain why you did or did not observe a difference in the influence of adding the spatial error term between the two models.
+
+    The addition of the nugget did not greatly impact the fit of of the model because of spatial independence. 
